@@ -1,0 +1,8 @@
+---
+# handlers file for aws-vpn
+
+- name: restart strongswan
+  become: yes
+  service:
+    name: strongswan
+    state: restarted

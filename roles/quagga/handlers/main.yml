@@ -1,0 +1,7 @@
+---
+# handlers file for quagga
+
+  # service/systemctl does not seem to work well with quagga
+- name: restart quagga
+  become: yes
+  command: /etc/init.d/quagga restart

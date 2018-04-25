@@ -1,0 +1,26 @@
+---
+# tasks file for quagga
+
+- name: install quagga package
+  apt:
+    name: quagga
+    state: present
+    update_cache: yes
+
+- name: copy dameons
+  copy:
+    src: daemons
+    dest: /etc/quagga/daemons
+  notify: restart quagga
+
+- name: template bgpd.conf
+  template:
+    src: bgpd.conf.j2
+    dest: /etc/quagga/bgpd.conf
+  notify: restart quagga
+
+- name: template zebra.conf
+  template:
+    src: zebra.conf.j2
+    dest: /etc/quagga/zebra.conf
+  notify: restart quagga

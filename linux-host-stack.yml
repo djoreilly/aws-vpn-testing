@@ -1,0 +1,88 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+# subnet should be public.
+
+# aws cloudformation create-stack --stack-name test-ipsec  --template-body file://linux-host-stack.yml --parameters ParameterKey=VPC,ParameterValue=vpc-a03301c7 ParameterKey=Subnet,ParameterValue=subnet-2a6f0271 ParameterKey=KeyName,ParameterValue=oreillyd-z420 ParameterKey=Image,ParameterValue=ami-1b791862
+
+# aws cloudformation describe-stacks --stack-name test-ipsec
+
+Description: Create an EC2 instance for StrongSwan
+
+Parameters:
+  VPC:
+    Description: VPC for security groups
+    Type: String
+
+  Subnet:
+    Description: Public subnet in VPC to launch instance
+    Type: String
+
+  KeyName:
+    Description: EC2 ssh keypair name
+    Type: String
+
+  Image:
+    Description: EC2 image to launch 
+    Type: String
+
+Resources:
+
+  SecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: ssh and ipsec
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: TestVPN
+
+  AllowSsh:
+    Type: "AWS::EC2::SecurityGroupIngress"
+    Properties:
+      IpProtocol: tcp
+      CidrIp: "0.0.0.0/0"
+      FromPort: 22
+      ToPort: 22
+      GroupId: !Ref SecurityGroup
+
+  AllowUDP500:
+    Type: "AWS::EC2::SecurityGroupIngress"
+    Properties:
+      IpProtocol: udp
+      CidrIp: "0.0.0.0/0"
+      FromPort: 500
+      ToPort: 500
+      GroupId: !Ref SecurityGroup
+
+  AllowUDP4500:
+    Type: "AWS::EC2::SecurityGroupIngress"
+    Properties:
+      IpProtocol: udp
+      CidrIp: "0.0.0.0/0"
+      FromPort: 4500
+      ToPort: 4500
+      GroupId: !Ref SecurityGroup
+ 
+  Instance1:
+     Type: "AWS::EC2::Instance"
+     Properties:
+       ImageId: !Ref Image
+       # t2.micro is not the best for net perf
+       InstanceType: t2.micro
+       KeyName: !Ref KeyName
+       SecurityGroupIds:
+         - !Ref SecurityGroup
+       SubnetId: !Ref Subnet
+       Tags:
+        - Key: Name
+          Value: TestVPN
+
+
+Outputs:
+  Instance:
+    Value: !Ref Instance1
+
+  PublicIP:
+    Description: public ip
+    Value: !GetAtt Instance1.PublicIp
+

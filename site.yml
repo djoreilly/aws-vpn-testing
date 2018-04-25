@@ -1,0 +1,13 @@
+---
+- hosts: all
+  become: yes
+
+  roles:
+
+    - role: "strongswan"
+      vars:
+        vpn_conns: "{{ lookup('file', 'vpn-conns.json') | from_json }}"
+
+    - role: "quagga"
+      vars:
+        vpn_conns: "{{ lookup('file', 'vpn-conns.json') | from_json }}"

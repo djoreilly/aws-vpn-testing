@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Create VPC with public subnet, internet gateway and default route
+
+
+# aws cloudformation create-stack --stack-name vpc --template-body file://vpc.yml --parameters ParameterKey=VpcName,ParameterValue=test-vpc2 ParameterKey=VpcCidr,ParameterValue='10.99.0.0/16' ParameterKey=SubCidr,ParameterValue='10.99.10.0/24'
+
+# aws cloudformation describe-stack-events --stack-name vpc
+# aws cloudformation describe-stacks --stack-name vpc
+
+
+Parameters:
+  VpcName:
+    Description: Name of VPCName
+    Type: String
+
+  VpcCidr:
+    Description: Cidr for the VPC block
+    Type: String
+
+  SubCidr:
+    Description: Cidr for the subnet
+    Type: String
+
+Resources:
+  VPC:
+    Type: "AWS::EC2::VPC"
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsSupport: True
+      EnableDnsHostnames: True
+      Tags:
+        - Key: Name
+          Value: !Ref VpcName
+
+  Subnet:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      CidrBlock: !Ref SubCidr
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: CFTest
+
+  InternetGW:
+    Type: "AWS::EC2::InternetGateway"
+    Properties:
+      Tags:
+        - Key: Name
+          Value: CFTest
+
+  VpcGwAttachment:
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties:
+      InternetGatewayId: !Ref InternetGW
+      VpcId: !Ref VPC
+
+  # don't seem to be able to use the vpc's default route table
+  RouteTable:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: CFTest
+
+  SubRtAss:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      RouteTableId: !Ref RouteTable
+      SubnetId: !Ref Subnet
+
+  DefaultRoute:
+    Type: "AWS::EC2::Route"
+    Properties:
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId: !Ref InternetGW
+      RouteTableId: !Ref RouteTable
+
+
+Outputs:
+  VPCid:
+    Description: the VPC id
+    Value: !Ref VPC
+  Subnet:
+    Description: the subnet
+    Value: !Ref Subnet

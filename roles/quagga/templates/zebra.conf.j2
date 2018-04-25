@@ -1,0 +1,14 @@
+#@ /etc/quagga/zebra.conf (Centos & Ubuntu)
+
+hostname {{ ansible_hostname }}
+password password123
+enable password password123
+!
+! Configure interfaces
+interface lo
+! Change preferred source ip address of received routes
+route-map RM_SET_SRC permit 10
+  set src {{ ansible_default_ipv4.address }}
+ip protocol bgp route-map RM_SET_SRC
+!
+line vty

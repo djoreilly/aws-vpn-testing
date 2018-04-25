@@ -1,0 +1,38 @@
+---
+- name: install strongswan package
+  apt:
+    name: strongswan
+    state: present
+    update_cache: yes
+
+- name: template ipsec.conf
+  template:
+    src: ipsec.conf.j2
+    dest: /etc/ipsec.conf
+  notify: restart strongswan
+
+- name: template ipsec-vti.sh
+  template:
+    src: ipsec-vti.sh.j2
+    dest: /etc/strongswan.d/ipsec-vti.sh
+    mode: 0750
+  notify: restart strongswan
+
+- name: template ipsec.secrets
+  template:
+    src: ipsec.secrets.j2
+    dest: /etc/ipsec.secrets
+  notify: restart strongswan
+
+  # this is the original with install_routes=yes
+- name: copy charon.conf
+  copy:
+    src: charon.conf
+    dest: /etc/strongswan.d/charon.conf
+  notify: restart strongswan
+
+- name: start and enable strongswan service
+  service:
+    name: strongswan
+    state: started
+    enabled: true
